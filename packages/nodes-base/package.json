@@ -401,6 +401,8 @@
       "dist/nodes/Xml.node.js",
       "dist/nodes/Zendesk/Zendesk.node.js",
       "dist/nodes/Zendesk/ZendeskTrigger.node.js",
+      "dist/nodes/Zlib/ZLibCompress.node.js",
+      "dist/nodes/Zlib/ZLibUncompress.node.js",
       "dist/nodes/Zoho/ZohoCrm.node.js",
       "dist/nodes/Zoom/Zoom.node.js",
       "dist/nodes/Zulip/Zulip.node.js"
@@ -480,7 +482,8 @@
     "uuid": "^3.4.0",
     "vm2": "^3.6.10",
     "xlsx": "^0.16.7",
-    "xml2js": "^0.4.22"
+    "xml2js": "^0.4.22",
+    "zlib": "^1.0.5"
   },
   "jest": {
     "transform": {
