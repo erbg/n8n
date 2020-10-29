@@ -47,18 +47,12 @@ export class ZLibCompress implements INodeType {
 
 		let body: IDataObject | string = item.json;
 
-		const propertyName = this.getNodeParameter('propertyName', '') as string;
-		const propertyNameSink = this.getNodeParameter('propertyNameSink', '') as string;
+		const propertyName = this.getNodeParameter('propertyName', 'data') as string;
+		const propertyNameSink = this.getNodeParameter('propertyNameSink', 'data') as string;
 
-        zlib.gzip(item[propertyName], function(err:any, uncompressedMessage:any) {
-            if(err) {
-              console.log(err)
-            }
-            else {
-                item[propertyNameSink]=uncompressedMessage;
-            }
-          })
-		return { json: item } as INodeExecutionData;
+		let compressedMessage = zlib.gzipSync(item.json[propertyName]);
 
+		item.json[propertyNameSink]=compressedMessage;
+		return item as INodeExecutionData;
 	}
 }

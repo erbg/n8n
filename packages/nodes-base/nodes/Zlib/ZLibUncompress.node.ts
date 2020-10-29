@@ -47,18 +47,15 @@ export class ZLibUncompress implements INodeType {
 
 		let body: IDataObject | string = item.json;
 
-		const propertyName = this.getNodeParameter('propertyName', '') as string;
-		const propertyNameSink = this.getNodeParameter('propertyNameSink', '') as string;
+		const propertyName = this.getNodeParameter('propertyName', 'data') as string;
+		const propertyNameSink = this.getNodeParameter('propertyNameSink', 'data') as string;
 
-        zlib.gunzip(item[propertyName], function(err:any, uncompressedMessage:any) {
-            if(err) {
-              console.log(err)
-            }
-            else {
-                item[propertyNameSink]=uncompressedMessage;
-            }
-          })
-		return { json: item } as INodeExecutionData;
+		const buf =  item.json[propertyName] as any;
+
+		let uncompressedMessage = zlib.gunzipSync(Buffer.from(buf)).toString();;
+
+		item.json[propertyNameSink]=uncompressedMessage;
+		return item as INodeExecutionData;
 
 	}
 }
