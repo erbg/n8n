@@ -187,6 +187,7 @@ export class AmqpTrigger implements INodeType {
 
 			self.emit([self.helpers.returnJsonArray([data])]);
 
+			console.log("Amqp credit: ", context.receiver.credit, "sleeptime", sleepTime)
 			if(context.receiver.credit ==0)
 				setTimeout(function(){ context.receiver.add_credit(pullMessagesNumber); }, sleepTime || 0);
 		});
