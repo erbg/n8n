@@ -3,10 +3,10 @@ import {
 	NodePropertyTypes,
 } from 'n8n-workflow';
 
-export class MailerLiteApi implements ICredentialType {
-	name = 'mailerLiteApi';
-	displayName = 'Mailer Lite API';
-	documentationUrl = 'mailerLite';
+export class StoryblokContentApi implements ICredentialType {
+	name = 'storyblokContentApi';
+	displayName = 'Storyblok Content API';
+	documentationUrl = 'storyblok';
 	properties = [
 		{
 			displayName: 'API Key',
