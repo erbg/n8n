@@ -152,7 +152,6 @@ export class AmqpTrigger implements INodeType {
 		const self = this;
 
 		container.on('receiver_open', function (context: any) {
-			console.log("Connection opened");
 			context.receiver.add_credit(pullMessagesNumber);
 		});
 
