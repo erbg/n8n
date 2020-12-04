@@ -140,6 +140,7 @@ export class AmqpTrigger implements INodeType {
 		}
 
 		const container = require('rhea');
+		container.name = clientname + "_" + subscription;
 		const connectOptions: ContainerOptions = {
 			host: credentials.hostname,
 			hostname: credentials.hostname,
@@ -167,6 +168,8 @@ export class AmqpTrigger implements INodeType {
 		});
 
 		container.on('message', (context: any) => { // tslint:disable-line:no-any
+
+			console.log("New Message on Amqp Trigger from " + container.name);
 			// ignore duplicate message check, don't think it's necessary, but it was in the rhea-lib example code
 			if (context.message.message_id && context.message.message_id === lastMsgId) {
 				return;
