@@ -173,7 +173,7 @@ export class AmqpTrigger implements INodeType {
 			if(!context.message)
 			   return;
 
-			console.log("New Message on Amqp Trigger from " + container.id + " context conteaineer id: " + context.container.id + " " + context.receiver?.name);
+			console.log("New Message on Amqp Trigger from " + container.id + " context conteaineer id: " + context.container.id + " " + context.receiver?.name + " - " + subscription);
 			// ignore duplicate message check, don't think it's necessary, but it was in the rhea-lib example code
 			if (context.message.message_id && context.message.message_id === lastMsgId) {
 				return;
