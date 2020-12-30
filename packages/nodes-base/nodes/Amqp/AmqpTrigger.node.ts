@@ -68,7 +68,7 @@ export class AmqpTrigger implements INodeType {
 				default: 10,
 				description: 'Milliseconds to sleep after every cicle',
 			},
-	{
+			{
 				displayName: 'Options',
 				name: 'options',
 				type: 'collection',
@@ -157,14 +157,8 @@ export class AmqpTrigger implements INodeType {
 			throw new Error('Queue or Topic required!');
 		}
 
-		let durable = false;
-
-		if (subscription && clientname) {
-			durable = true;
-		}
-
 		const container: Container = require('rhea');
-
+		console.log("New Container with ID: " + container.id + " for " + subscription);
 
 		let lastMsgId: string| number | Buffer | undefined = undefined;
 		const self = this;
@@ -179,7 +173,7 @@ export class AmqpTrigger implements INodeType {
 			if(!context.message)
 			   return;
 
-			console.log("New Message on Amqp Trigger from " + container.id + " context conteaineer id: " + context.container.id);
+			console.log("New Message on Amqp Trigger from " + container.id + " context conteaineer id: " + context.container.id + " " + context.receiver?.name);
 			// ignore duplicate message check, don't think it's necessary, but it was in the rhea-lib example code
 			if (context.message.message_id && context.message.message_id === lastMsgId) {
 				return;
@@ -240,8 +234,9 @@ export class AmqpTrigger implements INodeType {
 		};
 		const connection = container.connect(connectOptions);
 
+		const durable = (subscription && clientname);
 		let clientOptions : ReceiverOptions = {
-			name: subscription ? subscription : undefined,
+			name: subscription ? subscription : undefined,			
 			source: {
 				address: sink,
 				durable: (durable ? 2 : undefined),
