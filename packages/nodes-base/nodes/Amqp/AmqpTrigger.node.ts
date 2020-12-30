@@ -1,4 +1,5 @@
-import { Container, ContainerOptions, EventContext, Message, ReceiverOptions } from 'rhea';
+import { ContainerOptions, EventContext, Message, ReceiverOptions } from 'rhea';
+import rhea = require("rhea");
 
 import { ITriggerFunctions } from 'n8n-core';
 import {
@@ -157,8 +158,7 @@ export class AmqpTrigger implements INodeType {
 			throw new Error('Queue or Topic required!');
 		}
 
-		const container: Container = require('rhea');
-		console.log("New Container with ID: " + container.id + " for " + subscription);
+		const container = rhea.create_container();
 
 		let lastMsgId: string| number | Buffer | undefined = undefined;
 		const self = this;
@@ -173,7 +173,6 @@ export class AmqpTrigger implements INodeType {
 			if(!context.message)
 			   return;
 
-			console.log("New Message on Amqp Trigger from " + container.id + " context conteaineer id: " + context.container.id + " " + context.receiver?.name + " - " + subscription);
 			// ignore duplicate message check, don't think it's necessary, but it was in the rhea-lib example code
 			if (context.message.message_id && context.message.message_id === lastMsgId) {
 				return;
