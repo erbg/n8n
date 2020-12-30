@@ -1,4 +1,4 @@
-import { ContainerOptions } from 'rhea';
+import { Container, ContainerOptions, EventContext, ReceiverOptions } from 'rhea';
 
 import { ITriggerFunctions } from 'n8n-core';
 import {
@@ -148,10 +148,10 @@ export class AmqpTrigger implements INodeType {
 		const clientname = this.getNodeParameter('clientname', '') as string;
 		const subscription = this.getNodeParameter('subscription', '') as string;
 		const options = this.getNodeParameter('options', {}) as IDataObject;
-		const pullMessagesNumber = options.pullMessagesNumber || 100;
+		const pullMessagesNumber = options.pullMessagesNumber as number || 100;
 		const container_id = options.containerID as string;
-		const containerReconnect = options.reconnect || true as boolean;
-		const containerReconnectLimit = options.reconnectLimit || 50 as number;
+		const containerReconnect = options.reconnect as boolean || true ;
+		const containerReconnectLimit = options.reconnectLimit as number || 50;
 
 		if (sink === '') {
 			throw new Error('Queue or Topic required!');
@@ -163,40 +163,23 @@ export class AmqpTrigger implements INodeType {
 			durable = true;
 		}
 
-		const container = require('rhea');
+		const container: Container = require('rhea');
 
-		/*
-			Values are documentet here: https://github.com/amqp/rhea#container
-		 */
-		const connectOptions: ContainerOptions = {
-			host: credentials.hostname,
-			hostname: credentials.hostname,
-			port: credentials.port,
-			reconnect: containerReconnect,			    
-			reconnect_limit: containerReconnectLimit,	
-		};
-		if (credentials.username || credentials.password) {
-			connectOptions.username = credentials.username;
-			connectOptions.password = credentials.password;
-		}
-		if (credentials.transportType) {
-			connectOptions.transport = credentials.transportType;
-		}
-		if(container_id) {
-			connectOptions.id = container_id;
-			connectOptions.container_id = container_id;
-		}
 
-		let lastMsgId: number | undefined = undefined;
+		let lastMsgId: string| number | Buffer | undefined = undefined;
 		const self = this;
 
 		container.on('receiver_open', (context: any) => { // tslint:disable-line:no-any
 			context.receiver.add_credit(pullMessagesNumber);
 		});
 
-		container.on('message', (context: any) => { // tslint:disable-line:no-any
+		container.on('message', (context: EventContext) => { // tslint:disable-line:no-any
 
-			console.log("New Message on Amqp Trigger from " + container.name);
+			// No message in the context
+			if(!context.message)
+			   return;
+
+			console.log("New Message on Amqp Trigger from " + container.id + " context conteaineer id: " + context.container.id);
 			// ignore duplicate message check, don't think it's necessary, but it was in the rhea-lib example code
 			if (context.message.message_id && context.message.message_id === lastMsgId) {
 				return;
@@ -231,35 +214,40 @@ export class AmqpTrigger implements INodeType {
 			}
 
 
-			self.emit([self.helpers.returnJsonArray([data])]);
+			self.emit([self.helpers.returnJsonArray([data as any])]);
 
-			if (context.receiver.credit === 0) {
+			if (!context.receiver?.has_credit()) {
 				setTimeout(() => {
-					context.receiver.add_credit(pullMessagesNumber);
+					context.receiver?.add_credit(pullMessagesNumber);
 				}, options.sleepTime as number || 10);
 			}
 		});
 
+		/*
+			Values are documentet here: https://github.com/amqp/rhea#container
+		 */
+		const connectOptions: ContainerOptions = {
+			host: credentials.hostname,
+			hostname: credentials.hostname,
+			port: credentials.port,
+			reconnect: containerReconnect,			    
+			reconnect_limit: containerReconnectLimit,
+			username: credentials.username ? credentials.username : undefined,
+			password: credentials.password ? credentials.password : undefined,
+			transport: credentials.transportType ? credentials.transportType : undefined,
+			container_id: container_id ? container_id : undefined,
+			id: container_id ? container_id : undefined,
+		};
 		const connection = container.connect(connectOptions);
-		let clientOptions = undefined;
-		if (durable) {
-			clientOptions = {
-				name: subscription,
-				source: {
-					address: sink,
-					durable: 2,
-					expiry_policy: 'never'
-				},
-				credit_window: 0,	// prefetch 1
-			};
-		} else {
-			clientOptions = {
-				source: {
-					address: sink,
-				},
-				credit_window: 0,	// prefetch 1
-			};
-		}
+
+		let clientOptions : ReceiverOptions = {
+			source: {
+				address: sink,
+				durable: (durable ? 2 : undefined),
+				expiry_policy: (durable ? 'never' : undefined),
+			},
+			credit_window: 0,	// prefetch 1
+		};
 		connection.open_receiver(clientOptions);
 
 
