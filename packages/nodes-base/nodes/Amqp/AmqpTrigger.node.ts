@@ -1,4 +1,5 @@
-import { Container, ContainerOptions, EventContext, Message, ReceiverOptions } from 'rhea';
+import { ContainerOptions, EventContext, Message, ReceiverOptions, Delivery } from 'rhea';
+import rhea = require("rhea");
 
 import { ITriggerFunctions } from 'n8n-core';
 import {
@@ -68,7 +69,7 @@ export class AmqpTrigger implements INodeType {
 				default: 10,
 				description: 'Milliseconds to sleep after every cicle',
 			},
-			{
+	{
 				displayName: 'Options',
 				name: 'options',
 				type: 'collection',
@@ -143,7 +144,7 @@ export class AmqpTrigger implements INodeType {
 		if (!credentials) {
 			throw new Error('Credentials are mandatory!');
 		}
-
+		
 		const sink = this.getNodeParameter('sink', '') as string;
 		const clientname = this.getNodeParameter('clientname', '') as string;
 		const subscription = this.getNodeParameter('subscription', '') as string;
@@ -157,8 +158,13 @@ export class AmqpTrigger implements INodeType {
 			throw new Error('Queue or Topic required!');
 		}
 
-		const container: Container = require('rhea');
-		console.log("New Container with ID: " + container.id + " for " + subscription);
+		let durable = false;
+
+		if (subscription && clientname) {
+			durable = true;
+		}
+
+		const container = rhea.create_container();
 
 		let lastMsgId: string| number | Buffer | undefined = undefined;
 		const self = this;
@@ -173,8 +179,7 @@ export class AmqpTrigger implements INodeType {
 			if(!context.message)
 			   return;
 
-			console.log("New Message on Amqp Trigger from " + container.id + " context conteaineer id: " + context.container.id + " " + context.receiver?.name + " - " + subscription);
-			// ignore duplicate message check, don't think it's necessary, but it was in the rhea-lib example code
+	 	    // ignore duplicate message check, don't think it's necessary, but it was in the rhea-lib example code
 			if (context.message.message_id && context.message.message_id === lastMsgId) {
 				return;
 			}
@@ -208,7 +213,7 @@ export class AmqpTrigger implements INodeType {
 			}
 
 
-			self.emit([self.helpers.returnJsonArray([data as any])]);
+			self.emit([self.helpers.returnJsonArray([data as any, context.delivery as any])]);
 
 			if (!context.receiver?.has_credit()) {
 				setTimeout(() => {
@@ -234,15 +239,14 @@ export class AmqpTrigger implements INodeType {
 		};
 		const connection = container.connect(connectOptions);
 
-		const durable = (subscription && clientname);
 		let clientOptions : ReceiverOptions = {
-			name: subscription ? subscription : undefined,			
+			name: subscription ? subscription : undefined,
 			source: {
 				address: sink,
-				durable: (durable ? 2 : undefined),
-				expiry_policy: (durable ? 'never' : undefined),
+				durable: (durable ? 2 : undefined)
 			},
 			credit_window: 0,	// prefetch 1
+			autoaccept: false
 		};
 		connection.open_receiver(clientOptions);
 
@@ -270,10 +274,11 @@ export class AmqpTrigger implements INodeType {
 					// in which case we only emit the content of the body property
 					// otherwise we emit all properties and their content
 					const message = context.message as Message;
+
 					if (Object.keys(message)[0] === 'body' && Object.keys(message).length === 1) {
-						self.emit([self.helpers.returnJsonArray([message.body])]);
+						self.emit([self.helpers.returnJsonArray([message.body, context.delivery as any])]);
 					} else {
-						self.emit([self.helpers.returnJsonArray([message as any])]);
+						self.emit([self.helpers.returnJsonArray([message as any, context.delivery as any])]);
 					}
 					clearTimeout(timeoutHandler);
 					resolve(true);
