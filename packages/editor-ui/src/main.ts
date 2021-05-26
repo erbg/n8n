@@ -56,6 +56,7 @@ import {
 	faFilePdf,
 	faFolderOpen,
 	faHdd,
+	faHome,
 	faHourglass,
 	faImage,
 	faInbox,
@@ -92,6 +93,7 @@ import {
 	faTrash,
 	faUndo,
 	faUsers,
+	faClock,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -136,6 +138,7 @@ library.add(faFileImport);
 library.add(faFilePdf);
 library.add(faFolderOpen);
 library.add(faHdd);
+library.add(faHome);
 library.add(faHourglass);
 library.add(faImage);
 library.add(faInbox);
@@ -172,6 +175,7 @@ library.add(faTimes);
 library.add(faTrash);
 library.add(faUndo);
 library.add(faUsers);
+library.add(faClock);
 
 Vue.component('font-awesome-icon', FontAwesomeIcon);
 
