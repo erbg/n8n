@@ -163,9 +163,9 @@ export class AmqpTrigger implements INodeType {
 
 		container.on('message', (context: EventContext) => {
 
-			console.log("New Message:", subscription, "Options:", context.receiver?.options);
-			Logger.debug(`New Message on ${subscription}, Options Name: ${context.receiver?.options.name}`);
-			
+			console.log("New Message:", subscription, "Options:", context.receiver?.options, self.getWorkflow().name);
+			Logger.debug(`New Message on ${subscription}, Options Name: ${context.receiver?.options.name}, WorkflowName: ${self.getWorkflow().name}`);
+
 			// No message in the context
 			if (!context.message) {
 				return;
