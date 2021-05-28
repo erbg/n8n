@@ -161,6 +161,8 @@ export class AmqpTrigger implements INodeType {
 
 		container.on('message', (context: EventContext) => {
 
+			console.log("New Message:", subscription, "Options:", context.receiver?.options);
+
 			// No message in the context
 			if (!context.message) {
 				return;
