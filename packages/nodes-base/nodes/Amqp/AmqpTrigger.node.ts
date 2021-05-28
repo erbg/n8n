@@ -14,7 +14,9 @@ import {
 	ITriggerResponse,
 	NodeOperationError,
 } from 'n8n-workflow';
-
+import {
+	LoggerProxy as Logger,
+} from 'n8n-workflow';
 
 export class AmqpTrigger implements INodeType {
 	description: INodeTypeDescription = {
@@ -162,7 +164,8 @@ export class AmqpTrigger implements INodeType {
 		container.on('message', (context: EventContext) => {
 
 			console.log("New Message:", subscription, "Options:", context.receiver?.options);
-
+			Logger.debug(`New Message on ${subscription}, Options Name: ${context.receiver?.options.name}`);
+			
 			// No message in the context
 			if (!context.message) {
 				return;
